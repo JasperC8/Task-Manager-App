@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import PrescriptionForm from "../components/PrescriptionForm";
-import PrescriptionTable from "../components/PrescriptionTable";
+import PrescriptionList from "../components/PrescriptionList";
 
 const API_BASE = (import.meta?.env?.VITE_API_BASE || process.env.REACT_APP_API_BASE || "http://localhost:5001") + "/api";
 
