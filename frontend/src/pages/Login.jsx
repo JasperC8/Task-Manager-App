@@ -1,48 +1,38 @@
-import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../axiosConfig';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
-const Login = () => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+const API_BASE = (import.meta?.env?.VITE_API_BASE || process.env.REACT_APP_API_BASE || "http://localhost:5001") + "/api";
+
+export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
-  const navigate = useNavigate();
+  const nav = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const submit = async (e) => {
+    e.preventDefault(); setError(""); setLoading(true);
     try {
-      const response = await axiosInstance.post('/api/auth/login', formData);
-      login(response.data);
-      navigate('/tasks');
-    } catch (error) {
-      alert('Login failed. Please try again.');
-    }
+      const res = await axios.post(`${API_BASE}/auth/login`, { email, password });
+      login({ token: res.data.token, role: res.data.role });
+      nav(res.data.role === "doctor" ? "/doctor" : "/pharmacy");
+    } catch (err) {
+      setError(err?.response?.data?.message || err.message);
+    } finally { setLoading(false); }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-20">
-      <form onSubmit={handleSubmit} className="bg-white p-6 shadow-md rounded">
-        <h1 className="text-2xl font-bold mb-4 text-center">Login</h1>
-        <input
-          type="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className="w-full mb-4 p-2 border rounded"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          className="w-full mb-4 p-2 border rounded"
-        />
-        <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
-          Login
-        </button>
+    <div className="p-6 max-w-sm mx-auto">
+      <h1 className="text-xl font-semibold mb-4">Login</h1>
+      <form onSubmit={submit} className="grid gap-3">
+        <input type="email" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} required className="border rounded px-3 py-2"/>
+        <input type="password" placeholder="Password" value={password} onChange={(e)=>setPassword(e.target.value)} required className="border rounded px-3 py-2"/>
+        {error && <p className="text-red-600 text-sm">{error}</p>}
+        <button disabled={loading} className="bg-black text-white px-4 py-2 rounded">{loading?"Signing in…":"Login"}</button>
       </form>
     </div>
   );
-};
-
-export default Login;
+}

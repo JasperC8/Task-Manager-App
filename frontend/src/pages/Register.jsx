@@ -1,53 +1,40 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../axiosConfig';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-const Register = () => {
-  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
-  const navigate = useNavigate();
+const API_BASE = (import.meta?.env?.VITE_API_BASE || process.env.REACT_APP_API_BASE || "http://localhost:5001") + "/api";
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+export default function Register() {
+  const [form, setForm] = useState({ name: "", email: "", password: "", role: "doctor" });
+  const [error, setError] = useState("");
+  const nav = useNavigate();
+
+  const onChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+
+  const submit = async (e) => {
+    e.preventDefault(); setError("");
     try {
-      await axiosInstance.post('/api/auth/register', formData);
-      alert('Registration successful. Please log in.');
-      navigate('/login');
-    } catch (error) {
-      alert('Registration failed. Please try again.');
+      await axios.post(`${API_BASE}/auth/register`, form);
+      nav("/login");
+    } catch (err) {
+      setError(err?.response?.data?.message || err.message);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-20">
-      <form onSubmit={handleSubmit} className="bg-white p-6 shadow-md rounded">
-        <h1 className="text-2xl font-bold mb-4 text-center">Register</h1>
-        <input
-          type="text"
-          placeholder="Name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full mb-4 p-2 border rounded"
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className="w-full mb-4 p-2 border rounded"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          className="w-full mb-4 p-2 border rounded"
-        />
-        <button type="submit" className="w-full bg-green-600 text-white p-2 rounded">
-          Register
-        </button>
+    <div className="p-6 max-w-sm mx-auto">
+      <h1 className="text-xl font-semibold mb-4">Register</h1>
+      <form onSubmit={submit} className="grid gap-3">
+        <input name="name" placeholder="Name" value={form.name} onChange={onChange} required className="border rounded px-3 py-2"/>
+        <input type="email" name="email" placeholder="Email" value={form.email} onChange={onChange} required className="border rounded px-3 py-2"/>
+        <input type="password" name="password" placeholder="Password" value={form.password} onChange={onChange} required className="border rounded px-3 py-2"/>
+        <select name="role" value={form.role} onChange={onChange} className="border rounded px-3 py-2">
+          <option value="doctor">Doctor</option>
+          <option value="pharmacy">Pharmacy</option>
+        </select>
+        {error && <p className="text-red-600 text-sm">{error}</p>}
+        <button className="bg-black text-white px-4 py-2 rounded">Create account</button>
       </form>
     </div>
   );
-};
-
-export default Register;
+}
