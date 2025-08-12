@@ -1,44 +1,27 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-const Navbar = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
+export default function Navbar() {
+  const { isAuthed, role, logout } = useAuth();
   return (
-    <nav className="bg-blue-600 text-white p-4 flex justify-between items-center">
-      <Link to="/" className="text-2xl font-bold">Your apps name</Link>
-      <div>
-        {user ? (
+    <nav className="w-full border-b px-4 py-3 flex items-center justify-between">
+      <Link to="/" className="font-semibold">E‑Prescription</Link>
+      <div className="flex items-center gap-4">
+        {!isAuthed && (
           <>
-            <Link to="/tasks" className="mr-4">CRUD</Link>
-            <Link to="/profile" className="mr-4">Profile</Link>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 px-4 py-2 rounded hover:bg-red-700"
-            >
-              Logout
-            </button>
+            <Link to="/login">Login</Link>
+            <Link to="/register">Register</Link>
           </>
-        ) : (
+        )}
+        {isAuthed && (
           <>
-            <Link to="/login" className="mr-4">Login</Link>
-            <Link
-              to="/register"
-              className="bg-green-500 px-4 py-2 rounded hover:bg-green-700"
-            >
-              Register
-            </Link>
+            {role === "doctor" && <Link to="/doctor">Doctor</Link>}
+            {role === "pharmacy" && <Link to="/pharmacy">Pharmacy</Link>}
+            <button onClick={logout} className="border px-3 py-1 rounded">Logout</button>
           </>
         )}
       </div>
     </nav>
   );
-};
-
-export default Navbar;
+}
