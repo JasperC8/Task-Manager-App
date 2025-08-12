@@ -10,7 +10,12 @@ import Pharmacy from "./pages/pharmacy";
 
 // Small helper component so we can use the hook correctly
 function HomeRedirect() {
-  const { isAuthed, role } = useAuth();
+  const { isAuthed, role, isInitialized } = useAuth();
+
+  if (!isInitialized) {
+    return null; // Or a loading spinner
+  }
+
   return isAuthed ? <Navigate to={`/${role}`} replace /> : <Navigate to="/login" replace />;
 }
 
