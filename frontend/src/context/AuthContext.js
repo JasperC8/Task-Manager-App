@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
+import axios from "axios";
 
 const AuthContext = createContext(null);
 
@@ -14,6 +15,7 @@ export function AuthProvider({ children }) {
     setToken(token);
     setRole(role);
     setName(name || null);
+    axios.defaults.headers.common.Authorization = `Bearer ${token}`;
   };
 
   const logout = () => {
@@ -23,6 +25,7 @@ export function AuthProvider({ children }) {
     setToken(null);
     setRole(null);
     setName(null);
+    delete axios.defaults.headers.common.Authorization;
   };
 
   const value = useMemo(() => ({ token, role, name, isAuthed: !!token, login, logout }), [token, role, name]);
