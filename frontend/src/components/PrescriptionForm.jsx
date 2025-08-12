@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const API_BASE = (import.meta?.env?.VITE_API_BASE || process.env.REACT_APP_API_BASE || "http://localhost:5001") + "/api";
+const API_BASE = (process.env.REACT_APP_API_BASE || "http://localhost:5001") + "/api";
 
 export default function PrescriptionForm({ onIssued }) {
   const [form, setForm] = useState({ patientName: "", medication: "", dosage: "", instructions: "" });
@@ -12,7 +12,8 @@ export default function PrescriptionForm({ onIssued }) {
 
   const submit = async (e) => {
     e.preventDefault();
-    setLoading(true); setError("");
+    setLoading(true);
+    setError("");
     try {
       const token = localStorage.getItem("token");
       await axios.post(`${API_BASE}/prescriptions/issue`, form, {
@@ -22,7 +23,9 @@ export default function PrescriptionForm({ onIssued }) {
       onIssued?.();
     } catch (err) {
       setError(err?.response?.data?.message || err.message);
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
