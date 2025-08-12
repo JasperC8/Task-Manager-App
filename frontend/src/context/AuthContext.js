@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useContext, useMemo, useState, useEffect } from "react";
 import axios from "axios";
 
 const AuthContext = createContext(null);
@@ -8,13 +8,20 @@ export function AuthProvider({ children }) {
   const [role, setRole] = useState(() => localStorage.getItem("role"));
   const [name, setName] = useState(() => localStorage.getItem("name"));
 
+  // Restore Authorization header on refresh
+  useEffect(() => {
+    const t = localStorage.getItem("token");
+    if (t) axios.defaults.headers.common.Authorization = `Bearer ${t}`;
+  }, []);
+
   const login = ({ token, role, name }) => {
     localStorage.setItem("token", token);
     localStorage.setItem("role", role);
     if (name) localStorage.setItem("name", name);
     setToken(token);
     setRole(role);
-    setName(name || null);
+    if (name) setName(name);
+    // critical: attach token for subsequent requests
     axios.defaults.headers.common.Authorization = `Bearer ${token}`;
   };
 
@@ -28,8 +35,13 @@ export function AuthProvider({ children }) {
     delete axios.defaults.headers.common.Authorization;
   };
 
-  const value = useMemo(() => ({ token, role, name, isAuthed: !!token, login, logout }), [token, role, name]);
+  const value = useMemo(
+    () => ({ token, role, name, isAuthed: !!token, login, logout }),
+    [token, role, name]
+  );
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => useContext(AuthContext);
+

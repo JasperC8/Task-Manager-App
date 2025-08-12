@@ -1,12 +1,18 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Doctor from "./pages/doctor"; 
-import Pharmacy from "./pages/pharmacy"; 
+import Doctor from "./pages/doctor";
+import Pharmacy from "./pages/pharmacy";
+
+// Small helper component so we can use the hook correctly
+function HomeRedirect() {
+  const { isAuthed, role } = useAuth();
+  return isAuthed ? <Navigate to={`/${role}`} replace /> : <Navigate to="/login" replace />;
+}
 
 export default function App() {
   return (
@@ -14,9 +20,11 @@ export default function App() {
       <Router>
         <Navbar />
         <Routes>
-          <Route path="/" element={<Navigate to="/login" />} />
+          {/* IMPORTANT: root now routes based on auth/role */}
+          <Route path="/" element={<HomeRedirect />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+
           <Route
             path="/doctor"
             element={
@@ -25,6 +33,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/pharmacy"
             element={
