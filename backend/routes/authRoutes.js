@@ -14,7 +14,7 @@ router.post('/register', async (req, res) => {
   try {
     const user = new User({ name, email, password, role });
     await user.save();
-    const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET);
+    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET);
     res.json({ token, role: user.role });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -29,7 +29,7 @@ router.post('/login', async (req, res) => {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
 
-  const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET);
+  const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET);
   res.json({ token, role: user.role });
 });
 

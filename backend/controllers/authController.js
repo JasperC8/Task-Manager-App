@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 
 // Sign JWT with user id and role
 const signToken = (user) =>
-  jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '30d' });
+  jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
 /**
  * POST /api/auth/register
@@ -28,7 +28,7 @@ const registerUser = async (req, res) => {
     const user = await User.create({ name, email, password, role });
 
     return res.status(201).json({
-      id: user._id,
+      id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
@@ -54,7 +54,7 @@ const loginUser = async (req, res) => {
     if (!ok) return res.status(401).json({ message: 'Invalid credentials' });
 
     return res.json({
-      id: user._id,
+      id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,          // frontend expects this
@@ -72,7 +72,7 @@ const loginUser = async (req, res) => {
 const getProfile = async (req, res) => {
   try {
     return res.json({
-      id: req.user._id,
+      id: req.user.id,
       name: req.user.name,
       email: req.user.email,
       role: req.user.role,
@@ -99,7 +99,7 @@ const updateUserProfile = async (req, res) => {
     const saved = await user.save();
 
     return res.json({
-      id: saved._id,
+      id: saved.id,
       name: saved.name,
       email: saved.email,
       role: saved.role,
