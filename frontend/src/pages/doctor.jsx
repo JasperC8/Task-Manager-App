@@ -16,7 +16,7 @@ export default function Doctor() {
     setLoading(true);
     setError("");
     try {
-      const res = await axios.get(`${API_BASE}/prescriptions`, {
+      const res = await axios.get(`${API_BASE}/prescriptions/mine`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setList(Array.isArray(res.data) ? res.data : []);
