@@ -3,17 +3,13 @@ name: CI
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
+  build-test-deploy:
+    runs-on: self-hosted          # your EC2 runner
     strategy:
       matrix:
-        node-version: [20] # change to 22 if needed
-
+        node-version: [20]        # use 22 if your runner has Node 22
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -23,18 +19,63 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Install backend dependencies
+      # (Optional) tutorial shows printing secrets; avoid in real apps
+      - name: Print Env Secret (tutorial step)
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          PORT: ${{ secrets.PORT }}
+        run: |
+          echo "Secret 1 is: $MONGO_URI"
+          echo "Secret 2 is: $JWT_SECRET"
+          echo "Secret 3 is: $PORT"
+      # Stop PM2 apps if running
+      - name: Stop PM2 (ignore if none)
+        run: pm2 stop all || true
+
+      # ----- BACKEND -----
+      - name: Install backend deps
         working-directory: backend
         run: npm ci
 
       - name: Run backend tests
         working-directory: backend
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          PORT: ${{ secrets.PORT }}
         run: npm test
 
-      - name: Install frontend dependencies
+      # ----- FRONTEND -----
+      - name: Install frontend deps
         working-directory: frontend
         run: npm ci
 
       - name: Build frontend
         working-directory: frontend
-        run: npm run build
+        run: |
+          df -h
+          rm -rf build || true
+          npm run build
+
+      # ----- Write .env for prod (CD) -----
+      - name: Create .env from PROD secret
+        working-directory: backend
+        run: |
+          rm -f .env
+          printf "%s" "${{ secrets.PROD }}" > .env
+
+      # ----- PM2 start/restart (CD) -----
+      - name: Start/Restart Backend with PM2
+        working-directory: backend
+        run: |
+          pm2 describe backend >/dev/null 2>&1 && pm2 restart backend || pm2 start "npm run start" --name backend
+
+      - name: Serve Frontend with PM2
+        working-directory: frontend
+        run: |
+          pm2 describe Frontend >/dev/null 2>&1 && pm2 restart Frontend || pm2 serve build 3000 --name Frontend --spa
+
+      - name: Save PM2 process list
+        run: pm2 save
+
