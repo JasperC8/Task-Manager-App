@@ -7,10 +7,11 @@ on:
 jobs:
   build-test-deploy:
     runs-on: self-hosted
-    environment: MONGO_URI          # your EC2 runner
+    environment: MONGO_URI
     strategy:
       matrix:
-        node-version: [20]        # use 22 if your runner has Node 22
+        node-version: [20]   # use 22 if you installed Node 22 on EC2
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,8 +21,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      # (Optional) tutorial shows printing secrets; avoid in real apps
-      - name: Print Env Secret (tutorial step)
+      # (Tutorial demo) print env secrets — OK for class, not for real prod
+      - name: Print Env Secret
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -30,8 +31,8 @@ jobs:
           echo "Secret 1 is: $MONGO_URI"
           echo "Secret 2 is: $JWT_SECRET"
           echo "Secret 3 is: $PORT"
-      # Stop PM2 apps if running
-      - name: Stop PM2 (ignore if none)
+
+      - name: Stop PM2 if running
         run: pm2 stop all || true
 
       # ----- BACKEND -----
@@ -59,7 +60,7 @@ jobs:
           rm -rf build || true
           npm run build
 
-      # ----- Write .env for prod (CD) -----
+      # ----- Write .env for production (CD) -----
       - name: Create .env from PROD secret
         working-directory: backend
         run: |
@@ -79,4 +80,5 @@ jobs:
 
       - name: Save PM2 process list
         run: pm2 save
+
 
