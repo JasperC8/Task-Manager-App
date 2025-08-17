@@ -6,7 +6,8 @@ on:
 
 jobs:
   build-test-deploy:
-    runs-on: self-hosted          # your EC2 runner
+    runs-on: self-hosted
+    environment: MONGO_URI          # your EC2 runner
     strategy:
       matrix:
         node-version: [20]        # use 22 if your runner has Node 22
